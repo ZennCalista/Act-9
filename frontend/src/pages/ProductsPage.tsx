@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { client } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Modal } from '../components/Modal';
@@ -155,6 +155,8 @@ export const ProductsPage = () => {
     message: '', 
     type: 'info' as 'info' | 'success' | 'error' | 'confirm' 
   });
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = async () => {
     const res = await client.get('/products');
@@ -171,8 +173,13 @@ export const ProductsPage = () => {
       const stockVal = Number(newProduct.stock);
       
       if (!newProduct.title || isNaN(priceVal) || isNaN(stockVal)) {
-          alert('Please fill in valid details');
-          return;
+        setModalConfig({
+          title: 'Validation Error',
+          message: 'Please fill in valid details',
+          type: 'error'
+        });
+        setModalOpen(true);
+        return;
       }
 
       const formData = new FormData();
@@ -187,9 +194,23 @@ export const ProductsPage = () => {
       await client.post('/products', formData);
       fetchProducts();
       setNewProduct({ title: '', price: '', stock: '', description: '', image: null });
-    } catch (e) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      setModalConfig({
+        title: 'Success',
+        message: 'Product added successfully!',
+        type: 'success'
+      });
+      setModalOpen(true);
+    } catch (e: any) {
       console.error(e);
-      alert('Error creating product');
+      setModalConfig({
+        title: 'Error',
+        message: e.response?.data?.message || 'Error creating product',
+        type: 'error'
+      });
+      setModalOpen(true);
     }
   };
 
@@ -227,11 +248,42 @@ export const ProductsPage = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-      if(!confirm('Are you sure you want to delete this?')) return;
-      await client.delete(`/products/${id}`);
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setModalConfig({
+      title: 'Confirm Delete',
+      message: 'Are you sure you want to delete this product? This action cannot be undone.',
+      type: 'confirm'
+    });
+    setModalOpen(true);
+  };
+
+  const performDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      await client.delete(`/products/${itemToDelete}`);
+      setItemToDelete(null);
+      setModalConfig({
+        title: 'Success',
+        message: 'Product deleted successfully',
+        type: 'success'
+      });
+      setModalOpen(true); // Re-open as success
       fetchProducts();
-  }
+    } catch (e: any) {
+      setModalConfig({
+        title: 'Error',
+        message: e.response?.data?.message || 'Error deleting product',
+        type: 'error'
+      });
+      setModalOpen(true);
+    }
+  };
+
+  const handleModalClose = () => {
+      setModalOpen(false);
+      // Optional: if needed to clear states when closing
+  };
 
   return (
     <div style={{ paddingBottom: '2rem' }}>
@@ -240,7 +292,9 @@ export const ProductsPage = () => {
         title={modalConfig.title}
         message={modalConfig.message}
         type={modalConfig.type}
-        onClose={() => setModalOpen(false)}
+        onClose={handleModalClose}
+        onConfirm={modalConfig.type === 'confirm' ? performDelete : undefined}
+        confirmText="Delete"
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
          <h2>{role === 'SELLER' ? 'Seller Dashboard' : 'Marketplace'}</h2>
@@ -275,6 +329,7 @@ export const ProductsPage = () => {
                   <input 
                     type="file" 
                     accept="image/*"
+                    ref={fileInputRef}
                     onChange={e => setNewProduct({...newProduct, image: e.target.files ? e.target.files[0] : null})}
                     style={{ marginBottom: 0, padding: '0.5rem', background: '#f8fafc', borderRadius: '4px', border: '1px solid #cbd5e1', width: '100%' }} 
                   />
@@ -291,7 +346,7 @@ export const ProductsPage = () => {
             key={p.id} 
             product={p} 
             role={role} 
-            onDelete={handleDelete} 
+            onDelete={handleDeleteClick} 
             onUpdate={handleUpdate} 
             onAddToCart={handleAddToCart} 
           />
