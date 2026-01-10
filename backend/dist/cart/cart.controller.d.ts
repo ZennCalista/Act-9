@@ -5,5 +5,8 @@ export declare class CartController {
     constructor(cartService: CartService);
     getCart(req: any): Promise<import("./entities/cart.entity").Cart>;
     addToCart(req: any, addToCartDto: AddToCartDto): Promise<import("./entities/cart.entity").Cart>;
+    updateItem(req: any, itemId: string, body: {
+        quantity: number;
+    }): Promise<import("./entities/cart.entity").Cart>;
     removeItem(req: any, itemId: string): Promise<import("./entities/cart.entity").Cart>;
 }

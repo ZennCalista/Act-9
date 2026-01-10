@@ -31,6 +31,21 @@ export const CartPage = () => {
         fetchCart();
     };
 
+    const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+        if (newQuantity < 1) return;
+        try {
+            await client.patch(`/cart/${itemId}`, { quantity: newQuantity });
+            fetchCart();
+        } catch (e: any) {
+             setModalConfig({
+                title: 'Update Failed',
+                message: e.response?.data?.message || 'Failed to update quantity',
+                type: 'error'
+             });
+             setModalOpen(true);
+        }
+    };
+
     const handleCheckoutClick = () => {
         setModalConfig({
             title: 'Confirm Checkout',
@@ -99,9 +114,27 @@ export const CartPage = () => {
                             }}>
                                 <div>
                                     <h4 style={{ marginBottom: '0.2rem' }}>{item.product.title}</h4>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                        Qty: {item.quantity} × PHP {item.product.price}
-                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '4px' }}>
+                                            <button 
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                                                disabled={item.quantity <= 1}
+                                                style={{ padding: '0.2rem 0.6rem', border: 'none', background: 'transparent', cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer', color: item.quantity <= 1 ? '#ccc' : '#333' }}
+                                            >-</button>
+                                            <span style={{ padding: '0 0.5rem', minWidth: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>{item.quantity}</span>
+                                            <button 
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                                                disabled={item.quantity >= item.product.stock}
+                                                style={{ padding: '0.2rem 0.6rem', border: 'none', background: 'transparent', cursor: item.quantity >= item.product.stock ? 'not-allowed' : 'pointer', color: item.quantity >= item.product.stock ? '#ccc' : '#333' }}
+                                            >+</button>
+                                        </div>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                                            × PHP {item.product.price}
+                                        </p>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: item.quantity >= item.product.stock ? 'orange' : 'transparent', height: '1.2rem' }}>
+                                        {item.quantity >= item.product.stock && 'Max stock reached'}
+                                    </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <span style={{ fontWeight: 'bold' }}>PHP {(item.product.price * item.quantity).toFixed(2)}</span>

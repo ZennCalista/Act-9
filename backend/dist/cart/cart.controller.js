@@ -29,6 +29,9 @@ let CartController = class CartController {
     addToCart(req, addToCartDto) {
         return this.cartService.addToCart(req.user, addToCartDto);
     }
+    updateItem(req, itemId, body) {
+        return this.cartService.updateItem(req.user, itemId, body.quantity);
+    }
     removeItem(req, itemId) {
         return this.cartService.removeItem(req.user, itemId);
     }
@@ -49,6 +52,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_cart_dto_1.AddToCartDto]),
     __metadata("design:returntype", void 0)
 ], CartController.prototype, "addToCart", null);
+__decorate([
+    (0, common_1.Patch)(':itemId'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('itemId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], CartController.prototype, "updateItem", null);
 __decorate([
     (0, common_1.Delete)(':itemId'),
     __param(0, (0, common_1.Request)()),

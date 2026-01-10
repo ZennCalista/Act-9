@@ -65,6 +65,21 @@ let CartService = class CartService {
         await this.cartItemRepository.save(cartItem);
         return this.getCart(user);
     }
+    async updateItem(user, itemId, quantity) {
+        const cart = await this.getCart(user);
+        const item = await this.cartItemRepository.findOne({
+            where: { id: itemId, cart: { id: cart.id } },
+            relations: ['product'],
+        });
+        if (!item)
+            throw new common_1.NotFoundException('Item not found in cart');
+        if (item.product.stock < quantity) {
+            throw new common_1.BadRequestException('Insufficient stock');
+        }
+        item.quantity = quantity;
+        await this.cartItemRepository.save(item);
+        return this.getCart(user);
+    }
     async removeItem(user, itemId) {
         const cart = await this.getCart(user);
         const item = await this.cartItemRepository.findOne({
