@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { client } from '../api/client';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../components/Modal';
 
 export const CartPage = () => {
     const navigate = useNavigate();
     const [cart, setCart] = useState<any>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalConfig, setModalConfig] = useState({ 
+        title: '', 
+        message: '', 
+        type: 'info' as 'info' | 'success' | 'error' | 'confirm' 
+    });
 
     const fetchCart = async () => {
         try {
@@ -24,16 +31,39 @@ export const CartPage = () => {
         fetchCart();
     };
 
-    const handleCheckout = async () => {
+    const handleCheckoutClick = () => {
+        setModalConfig({
+            title: 'Confirm Checkout',
+            message: 'Are you sure you want to checkout and pay for these items?',
+            type: 'confirm'
+        });
+        setModalOpen(true);
+    };
+
+    const performCheckout = async () => {
         try {
             await client.post('/orders/checkout');
-            alert('Order placed successfully!');
+            setModalConfig({
+                title: 'Success',
+                message: 'Order placed successfully!',
+                type: 'success'
+            });
             fetchCart();
-            navigate('/orders');
         } catch (e: any) {
-             alert(e.response?.data?.message || 'Checkout failed');
+             setModalConfig({
+                title: 'Checkout Failed',
+                message: e.response?.data?.message || 'Checkout failed',
+                type: 'error'
+             });
         }
-    }
+    };
+
+    const handleModalClose = () => {
+        setModalOpen(false);
+        if (modalConfig.type === 'success') {
+            navigate('/orders');
+        }
+    };
 
     if (!cart) return <div className="container">Loading...</div>;
 
@@ -41,6 +71,15 @@ export const CartPage = () => {
 
     return (
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <Modal
+                isOpen={modalOpen}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onClose={handleModalClose}
+                onConfirm={modalConfig.type === 'confirm' ? performCheckout : undefined}
+                confirmText="Pay Now"
+            />
             <h2 style={{ marginBottom: '1.5rem' }}>🛒 Your Shopping Cart</h2>
             
             {cart.items?.length === 0 ? (
@@ -77,7 +116,7 @@ export const CartPage = () => {
                     </div>
                     
                     <div style={{ textAlign: 'right' }}>
-                        <button onClick={handleCheckout} style={{ fontSize: '1.1rem', padding: '0.8rem 2rem' }}>Checkout & Pay</button>
+                        <button onClick={handleCheckoutClick} style={{ fontSize: '1.1rem', padding: '0.8rem 2rem' }}>Checkout & Pay</button>
                     </div>
                 </div>
             )}

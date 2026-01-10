@@ -66,9 +66,13 @@ let AuthService = class AuthService {
         return null;
     }
     async login(loginDto) {
-        const user = await this.validateUser(loginDto.username, loginDto.password);
+        const user = await this.usersService.findOneByUsername(loginDto.username);
         if (!user) {
-            throw new common_1.UnauthorizedException('Invalid credentials');
+            throw new common_1.UnauthorizedException('Username not found');
+        }
+        const isMatch = await bcrypt.compare(loginDto.password, user.password);
+        if (!isMatch) {
+            throw new common_1.UnauthorizedException('Incorrect password');
         }
         const payload = { username: user.username, sub: user.id, role: user.role };
         return {

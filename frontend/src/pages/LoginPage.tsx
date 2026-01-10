@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { client } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { Modal } from '../components/Modal';
 
 export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: '', password: '' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,13 +18,23 @@ export const LoginPage = () => {
       const res = await client.post('/auth/login', form);
       login(res.data.access_token);
       navigate('/');
-    } catch (e) {
-      alert('Login failed');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Login failed. Please try again.';
+      setModalTitle('Login Failed');
+      setModalMessage(Array.isArray(message) ? message.join(', ') : message);
+      setModalOpen(true);
     }
   };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <Modal 
+          isOpen={modalOpen} 
+          title={modalTitle} 
+          message={modalMessage} 
+          onClose={() => setModalOpen(false)} 
+          type="error"
+        />
         <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary)' }}>Welcome Back</h2>
             <form onSubmit={handleSubmit}>

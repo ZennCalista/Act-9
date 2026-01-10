@@ -26,10 +26,18 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.username, loginDto.password);
+    // Check if user exists
+    const user = await this.usersService.findOneByUsername(loginDto.username);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Username not found');
     }
+
+    // Check if password matches
+    const isMatch = await bcrypt.compare(loginDto.password, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Incorrect password');
+    }
+
     const payload = { username: user.username, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),

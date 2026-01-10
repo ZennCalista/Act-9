@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { client } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { Modal } from '../components/Modal';
 
 // Sub-component for individual product logic
 const ProductCard = ({ product, role, onDelete, onAddToCart, onUpdate }: any) => {
@@ -148,6 +149,12 @@ export const ProductsPage = () => {
   const { role } = useAuth();
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ title: '', price: '', stock: '', description: '', image: null as File | null });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ 
+    title: '', 
+    message: '', 
+    type: 'info' as 'info' | 'success' | 'error' | 'confirm' 
+  });
 
   const fetchProducts = async () => {
     const res = await client.get('/products');
@@ -204,9 +211,19 @@ export const ProductsPage = () => {
   const handleAddToCart = async (productId: string) => {
     try {
       await client.post('/cart', { productId, quantity: 1 });
-      alert('Added to cart!');
+      setModalConfig({
+        title: 'Success',
+        message: 'Item added to cart successfully!',
+        type: 'success'
+      });
+      setModalOpen(true);
     } catch (e: any) {
-      alert(e.response?.data?.message || 'Error');
+      setModalConfig({
+        title: 'Error',
+        message: e.response?.data?.message || 'Failed to add item to cart',
+        type: 'error'
+      });
+      setModalOpen(true);
     }
   };
 
@@ -218,6 +235,13 @@ export const ProductsPage = () => {
 
   return (
     <div style={{ paddingBottom: '2rem' }}>
+      <Modal
+        isOpen={modalOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        onClose={() => setModalOpen(false)}
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
          <h2>{role === 'SELLER' ? 'Seller Dashboard' : 'Marketplace'}</h2>
       </div>
