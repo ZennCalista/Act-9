@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Delete, Param, UseGuards, Request, Patch } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/create-cart.dto';
+import { UpdateCartDto } from './dto/update-cart.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('cart')
 @ApiBearerAuth()
@@ -22,7 +23,8 @@ export class CartController {
   }
 
   @Patch(':itemId')
-  updateItem(@Request() req, @Param('itemId') itemId: string, @Body() body: { quantity: number }) {
+  @ApiBody({ type: UpdateCartDto }) // Explicitly tell Swagger what the body looks like
+  updateItem(@Request() req, @Param('itemId') itemId: string, @Body() body: UpdateCartDto) {
     return this.cartService.updateItem(req.user, itemId, body.quantity);
   }
 

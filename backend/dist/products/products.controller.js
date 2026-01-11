@@ -28,9 +28,6 @@ let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
     }
-    async assignLegacy() {
-        return this.productsService.assignOrphanProductsToSeller('seller');
-    }
     create(body, file, req) {
         const createProductDto = {
             ...body,
@@ -63,12 +60,6 @@ let ProductsController = class ProductsController {
     }
 };
 exports.ProductsController = ProductsController;
-__decorate([
-    (0, common_1.Get)('fix/assign-legacy'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], ProductsController.prototype, "assignLegacy", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),

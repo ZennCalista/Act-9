@@ -2,9 +2,6 @@ import { ProductsService } from './products.service';
 export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
-    assignLegacy(): Promise<{
-        message: string;
-    }>;
     create(body: any, file: Express.Multer.File, req: any): Promise<import("./entities/product.entity").Product>;
     findAll(): Promise<import("./entities/product.entity").Product[]>;
     findOne(id: string): Promise<import("./entities/product.entity").Product>;

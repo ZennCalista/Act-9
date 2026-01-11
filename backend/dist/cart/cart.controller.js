@@ -16,6 +16,7 @@ exports.CartController = void 0;
 const common_1 = require("@nestjs/common");
 const cart_service_1 = require("./cart.service");
 const create_cart_dto_1 = require("./dto/create-cart.dto");
+const update_cart_dto_1 = require("./dto/update-cart.dto");
 const passport_1 = require("@nestjs/passport");
 const swagger_1 = require("@nestjs/swagger");
 let CartController = class CartController {
@@ -54,11 +55,12 @@ __decorate([
 ], CartController.prototype, "addToCart", null);
 __decorate([
     (0, common_1.Patch)(':itemId'),
+    (0, swagger_1.ApiBody)({ type: update_cart_dto_1.UpdateCartDto }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('itemId')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:paramtypes", [Object, String, update_cart_dto_1.UpdateCartDto]),
     __metadata("design:returntype", void 0)
 ], CartController.prototype, "updateItem", null);
 __decorate([

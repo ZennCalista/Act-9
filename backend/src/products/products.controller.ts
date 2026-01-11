@@ -16,11 +16,6 @@ import { extname } from 'path';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Get('fix/assign-legacy')
-  async assignLegacy() {
-    return this.productsService.assignOrphanProductsToSeller('seller');
-  }
-
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.SELLER)
