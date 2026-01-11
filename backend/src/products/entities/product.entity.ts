@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Product {
@@ -22,4 +23,7 @@ export class Product {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @ManyToOne(() => User, (user) => user.products, { eager: true }) // Added eager: true to always fetch seller info
+  seller: User;
 }

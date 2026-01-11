@@ -146,8 +146,11 @@ const ProductCard = ({ product, role, onDelete, onAddToCart, onUpdate }: any) =>
 };
 
 export const ProductsPage = () => {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const [newProduct, setNewProduct] = useState({ title: '', price: '', stock: '', description: '', image: null as File | null });
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ 
@@ -285,6 +288,17 @@ export const ProductsPage = () => {
       // Optional: if needed to clear states when closing
   };
 
+  const displayedProducts = role === 'SELLER'
+    ? products.filter((p: any) => p.seller && p.seller.id === user?.sub) 
+    : products;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayedProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(displayedProducts.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
     <div style={{ paddingBottom: '2rem' }}>
       <Modal
@@ -341,7 +355,7 @@ export const ProductsPage = () => {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-        {products.map((p: any) => (
+        {currentItems.map((p: any) => (
           <ProductCard 
             key={p.id} 
             product={p} 
@@ -352,6 +366,50 @@ export const ProductsPage = () => {
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem', gap: '0.5rem' }}>
+          <button 
+            onClick={() => paginate(currentPage - 1)} 
+            disabled={currentPage === 1}
+            style={{ 
+              backgroundColor: '#f1f5f9', 
+              color: '#334155',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              opacity: currentPage === 1 ? 0.5 : 1
+            }}
+          >
+            Previous
+          </button>
+          
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index}
+              onClick={() => paginate(index + 1)}
+              style={{
+                backgroundColor: currentPage === index + 1 ? 'var(--primary)' : '#f1f5f9',
+                color: currentPage === index + 1 ? 'white' : '#334155',
+                border: '1px solid #e2e8f0'
+              }}
+            >
+              {index + 1}
+            </button>
+          ))}
+          
+          <button 
+            onClick={() => paginate(currentPage + 1)} 
+            disabled={currentPage === totalPages}
+            style={{ 
+              backgroundColor: '#f1f5f9', 
+              color: '#334155',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              opacity: currentPage === totalPages ? 0.5 : 1
+            }}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

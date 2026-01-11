@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -6,7 +6,7 @@ import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../users/entities/user.entity';
+import { UserRole, User } from '../users/entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -15,6 +15,11 @@ import { extname } from 'path';
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+
+  @Get('fix/assign-legacy')
+  async assignLegacy() {
+    return this.productsService.assignOrphanProductsToSeller('seller');
+  }
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -29,14 +34,16 @@ export class ProductsController {
       },
     }),
   }))
-  create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  create(@Body() body: any, @UploadedFile() file: Express.Multer.File, @Request() req) {
     const createProductDto: CreateProductDto = {
       ...body,
       price: Number(body.price),
       stock: Number(body.stock),
       imageUrl: file ? `/uploads/${file.filename}` : undefined,
     };
-    return this.productsService.create(createProductDto);
+    // req.user contains the JWT payload. We construct a partial User object with the ID.
+    const user = { id: req.user.id } as User; 
+    return this.productsService.create(createProductDto, user);
   }
 
   @Get()

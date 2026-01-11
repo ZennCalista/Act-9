@@ -23,6 +23,10 @@ let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
+    async checkUsername(username) {
+        const user = await this.usersService.findOneByUsername(username);
+        return { available: !user };
+    }
     create(createUserDto) {
         return this.usersService.create(createUserDto);
     }
@@ -40,6 +44,13 @@ let UsersController = class UsersController {
     }
 };
 exports.UsersController = UsersController;
+__decorate([
+    (0, common_1.Get)('check/:username'),
+    __param(0, (0, common_1.Param)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "checkUsername", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

@@ -1,3 +1,4 @@
+import { Product } from '../../products/entities/product.entity';
 export declare enum UserRole {
     SELLER = "SELLER",
     BUYER = "BUYER"
@@ -7,4 +8,5 @@ export declare class User {
     username: string;
     password: string;
     role: UserRole;
+    products: Product[];
 }

@@ -1,3 +1,4 @@
+import { User } from '../../users/entities/user.entity';
 export declare class Product {
     id: string;
     title: string;
@@ -6,4 +7,5 @@ export declare class Product {
     price: number;
     stock: number;
     isActive: boolean;
+    seller: User;
 }

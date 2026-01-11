@@ -9,6 +9,12 @@ import { ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('check/:username')
+  async checkUsername(@Param('username') username: string) {
+    const user = await this.usersService.findOneByUsername(username);
+    return { available: !user };
+  }
+
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);

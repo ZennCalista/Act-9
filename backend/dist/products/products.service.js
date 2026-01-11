@@ -17,13 +17,34 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const product_entity_1 = require("./entities/product.entity");
+const users_service_1 = require("../users/users.service");
 let ProductsService = class ProductsService {
     productsRepository;
-    constructor(productsRepository) {
+    usersService;
+    constructor(productsRepository, usersService) {
         this.productsRepository = productsRepository;
+        this.usersService = usersService;
     }
-    create(createProductDto) {
-        const product = this.productsRepository.create(createProductDto);
+    async assignOrphanProductsToSeller(username) {
+        const seller = await this.usersService.findOneByUsername(username);
+        if (!seller) {
+            throw new common_1.NotFoundException(`User ${username} not found`);
+        }
+        const orphans = await this.productsRepository.createQueryBuilder('product')
+            .leftJoinAndSelect('product.seller', 'seller')
+            .where('product.sellerId IS NULL')
+            .getMany();
+        for (const product of orphans) {
+            product.seller = seller;
+            await this.productsRepository.save(product);
+        }
+        return { message: `Assigned ${orphans.length} products to ${username}` };
+    }
+    create(createProductDto, user) {
+        const product = this.productsRepository.create({
+            ...createProductDto,
+            seller: user
+        });
         return this.productsRepository.save(product);
     }
     findAll() {
@@ -49,6 +70,7 @@ exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(product_entity_1.Product)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        users_service_1.UsersService])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

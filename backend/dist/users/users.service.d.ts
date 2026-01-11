@@ -13,6 +13,7 @@ export declare class UsersService {
         id: string;
         username: string;
         role: import("./entities/user.entity").UserRole;
+        products: import("../products/entities/product.entity").Product[];
     } | null>;
     remove(id: string): Promise<import("typeorm").DeleteResult>;
 }

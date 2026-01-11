@@ -28,14 +28,18 @@ let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
     }
-    create(body, file) {
+    async assignLegacy() {
+        return this.productsService.assignOrphanProductsToSeller('seller');
+    }
+    create(body, file, req) {
         const createProductDto = {
             ...body,
             price: Number(body.price),
             stock: Number(body.stock),
             imageUrl: file ? `/uploads/${file.filename}` : undefined,
         };
-        return this.productsService.create(createProductDto);
+        const user = { id: req.user.id };
+        return this.productsService.create(createProductDto, user);
     }
     findAll() {
         return this.productsService.findAll();
@@ -60,6 +64,12 @@ let ProductsController = class ProductsController {
 };
 exports.ProductsController = ProductsController;
 __decorate([
+    (0, common_1.Get)('fix/assign-legacy'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "assignLegacy", null);
+__decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(user_entity_1.UserRole.SELLER),
@@ -75,8 +85,9 @@ __decorate([
     })),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.UploadedFile)()),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "create", null);
 __decorate([
