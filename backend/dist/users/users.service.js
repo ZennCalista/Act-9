@@ -79,8 +79,29 @@ let UsersService = class UsersService {
     findOne(id) {
         return this.usersRepository.findOne({ where: { id } });
     }
-    update(id, updateUserDto) {
-        return `This action updates a #${id} user`;
+    async update(id, updateUserDto) {
+        const user = await this.findOne(id);
+        if (!user) {
+            throw new common_1.ConflictException('User not found');
+        }
+        if (updateUserDto.username && updateUserDto.username !== user.username) {
+            const existingUser = await this.usersRepository.findOne({
+                where: { username: updateUserDto.username },
+            });
+            if (existingUser) {
+                throw new common_1.ConflictException('Username already exists');
+            }
+        }
+        if (updateUserDto.password) {
+            updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+        }
+        await this.usersRepository.update(id, updateUserDto);
+        const updatedUser = await this.findOne(id);
+        if (updatedUser) {
+            const { password, ...result } = updatedUser;
+            return result;
+        }
+        return null;
     }
     remove(id) {
         return this.usersRepository.delete(id);

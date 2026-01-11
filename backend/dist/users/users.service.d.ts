@@ -9,6 +9,10 @@ export declare class UsersService {
     findOneByUsername(username: string): Promise<User | null>;
     findAll(): Promise<User[]>;
     findOne(id: string): Promise<User | null>;
-    update(id: string, updateUserDto: UpdateUserDto): string;
+    update(id: string, updateUserDto: UpdateUserDto): Promise<{
+        id: string;
+        username: string;
+        role: import("./entities/user.entity").UserRole;
+    } | null>;
     remove(id: string): Promise<import("typeorm").DeleteResult>;
 }

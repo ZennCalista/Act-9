@@ -41,9 +41,33 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
-  // Not strictly needed for the MVP but good to keep structure
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+
+    if (updateUserDto.username && updateUserDto.username !== user.username) {
+      const existingUser = await this.usersRepository.findOne({
+        where: { username: updateUserDto.username },
+      });
+      if (existingUser) {
+        throw new ConflictException('Username already exists');
+      }
+    }
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    await this.usersRepository.update(id, updateUserDto);
+    const updatedUser = await this.findOne(id);
+    
+    if (updatedUser) {
+      const { password, ...result } = updatedUser;
+      return result;
+    }
+    return null;
   }
 
   remove(id: string) {
