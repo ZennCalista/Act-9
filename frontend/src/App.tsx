@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -12,6 +12,7 @@ import './App.css';
 const NavBar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   if (!user && (location.pathname === '/login' || location.pathname === '/register')) {
@@ -25,6 +26,7 @@ const NavBar = () => {
   const handleConfirmLogout = () => {
     logout();
     setShowLogoutModal(false);
+    navigate('/');
   };
 
   return (

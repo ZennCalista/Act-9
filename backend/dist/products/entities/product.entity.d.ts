@@ -1,6 +1,7 @@
 import { User } from '../../users/entities/user.entity';
 export declare class Product {
     id: string;
+    createdAt: Date;
     title: string;
     description: string;
     imageUrl: string;

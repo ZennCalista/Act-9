@@ -48,7 +48,10 @@ let ProductsService = class ProductsService {
         return this.productsRepository.save(product);
     }
     findAll() {
-        return this.productsRepository.find({ where: { isActive: true } });
+        return this.productsRepository.find({
+            where: { isActive: true },
+            order: { createdAt: 'DESC' }
+        });
     }
     async findOne(id) {
         const product = await this.productsRepository.findOne({ where: { id } });
@@ -63,7 +66,8 @@ let ProductsService = class ProductsService {
     }
     async remove(id) {
         const product = await this.findOne(id);
-        return this.productsRepository.remove(product);
+        product.isActive = false;
+        return this.productsRepository.save(product);
     }
 };
 exports.ProductsService = ProductsService;

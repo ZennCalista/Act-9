@@ -43,7 +43,10 @@ export class ProductsService {
   }
 
   findAll() {
-    return this.productsRepository.find({ where: { isActive: true } });
+    return this.productsRepository.find({ 
+      where: { isActive: true },
+      order: { createdAt: 'DESC' } 
+    });
   }
 
   async findOne(id: string) {
@@ -60,6 +63,7 @@ export class ProductsService {
 
   async remove(id: string) {
     const product = await this.findOne(id);
-    return this.productsRepository.remove(product);
+    product.isActive = false;
+    return this.productsRepository.save(product);
   }
 }

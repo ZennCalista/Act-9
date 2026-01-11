@@ -25,6 +25,22 @@ export class ProductsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.SELLER)
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        price: { type: 'number' },
+        stock: { type: 'number' },
+        description: { type: 'string' },
+        image: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('image', {
     storage: diskStorage({
       destination: './uploads',
@@ -60,6 +76,23 @@ export class ProductsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.SELLER)
   @Patch(':id')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', nullable: true },
+        price: { type: 'number', nullable: true },
+        stock: { type: 'number', nullable: true },
+        description: { type: 'string', nullable: true },
+        image: {
+          type: 'string',
+          format: 'binary',
+          nullable: true
+        },
+      },
+    },
+  })
   @UseInterceptors(FileInterceptor('image', {
     storage: diskStorage({
       destination: './uploads',

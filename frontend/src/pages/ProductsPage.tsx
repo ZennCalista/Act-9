@@ -149,6 +149,7 @@ export const ProductsPage = () => {
   const { role, user } = useAuth();
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 6;
 
   const [newProduct, setNewProduct] = useState({ title: '', price: '', stock: '', description: '', image: null as File | null });
@@ -162,8 +163,12 @@ export const ProductsPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProducts = async () => {
-    const res = await client.get('/products');
-    setProducts(res.data);
+    try {
+      const res = await client.get('/products');
+      setProducts(res.data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    }
   };
 
   useEffect(() => {
@@ -266,13 +271,14 @@ export const ProductsPage = () => {
     try {
       await client.delete(`/products/${itemToDelete}`);
       setItemToDelete(null);
+      // Wait for the list to refresh BEFORE showing success
+      await fetchProducts(); 
       setModalConfig({
         title: 'Success',
         message: 'Product deleted successfully',
         type: 'success'
       });
-      setModalOpen(true); // Re-open as success
-      fetchProducts();
+      setModalOpen(true); 
     } catch (e: any) {
       setModalConfig({
         title: 'Error',
@@ -288,14 +294,38 @@ export const ProductsPage = () => {
       // Optional: if needed to clear states when closing
   };
 
-  const displayedProducts = role === 'SELLER'
+  // 1. Filter by Role (Seller vs Buyer)
+  let filteredProducts = role === 'SELLER'
     ? products.filter((p: any) => p.seller && p.seller.id === user?.sub) 
     : products;
 
+  // 2. Filter by Search Term
+  if (searchTerm) {
+    const lower = searchTerm.toLowerCase();
+    filteredProducts = filteredProducts.filter((p: any) => 
+      p.title.toLowerCase().includes(lower) || 
+      (p.description && p.description.toLowerCase().includes(lower))
+    );
+  }
+
+  // 3. Pagination Logic applied to the FILTERED list
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Auto-redirect to previous page if current page becomes empty (e.g. after delete)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = displayedProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(displayedProducts.length / itemsPerPage);
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -312,6 +342,22 @@ export const ProductsPage = () => {
       />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
          <h2>{role === 'SELLER' ? 'Seller Dashboard' : 'Marketplace'}</h2>
+         <div style={{ position: 'relative', width: '300px' }}>
+            <input 
+              type="text" 
+              placeholder="🔍 Search items..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '0.6rem 1rem', 
+                borderRadius: '20px', 
+                border: '1px solid #ddd',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                marginBottom: 0
+              }}
+            />
+         </div>
       </div>
       
       {role === 'SELLER' && (

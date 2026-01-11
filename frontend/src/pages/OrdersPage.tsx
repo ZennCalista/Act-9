@@ -19,7 +19,7 @@ export const OrdersPage = () => {
                         <div key={o.id} className="card">
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
                                 <div>
-                                    <h4 style={{ margin: 0 }}>Order #{o.id.slice(0, 8)}...</h4>
+                                    <h4 style={{ margin: 0 }}>Order #{o.id}</h4>
                                     <small style={{ color: 'var(--text-muted)' }}>{new Date(o.createdAt).toLocaleDateString()}</small>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>

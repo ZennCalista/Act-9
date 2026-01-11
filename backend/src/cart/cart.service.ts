@@ -32,6 +32,10 @@ export class CartService {
     const { productId, quantity } = addToCartDto;
     const product = await this.productsService.findOne(productId);
 
+    if (!product.isActive) {
+      throw new BadRequestException('Product is no longer available');
+    }
+
     if (product.stock < quantity) {
       throw new BadRequestException('Insufficient stock');
     }

@@ -42,6 +42,9 @@ let CartService = class CartService {
     async addToCart(user, addToCartDto) {
         const { productId, quantity } = addToCartDto;
         const product = await this.productsService.findOne(productId);
+        if (!product.isActive) {
+            throw new common_1.BadRequestException('Product is no longer available');
+        }
         if (product.stock < quantity) {
             throw new common_1.BadRequestException('Insufficient stock');
         }
